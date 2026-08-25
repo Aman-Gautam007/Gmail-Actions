@@ -1,0 +1,30 @@
+# Google OAuth secrets and locally issued access/refresh tokens
+credentials.json
+client_secret*.json
+token.json
+*.token.json
+
+# Local runtime state and locks
+.processed_reminders.json
+.cleanup.lock
+
+# Logs
+cleanup.log
+cleanup-error.log
+*.log
+
+# Local Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# macOS metadata
+.DS_Store
