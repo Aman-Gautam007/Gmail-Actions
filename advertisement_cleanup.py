@@ -160,13 +160,27 @@ def list_query_message_ids(service, query: str) -> list[str]:
 
 def add_label_to_messages(service, message_ids: list[str], label_id: str) -> None:
     for start in range(0, len(message_ids), 1000):
-        service.users().messages().batchModify(
+        request = service.users().messages().batchModify(
             userId="me",
             body={
                 "ids": message_ids[start : start + 1000],
                 "addLabelIds": [label_id],
+                "removeLabelIds": ["INBOX"],
             },
-        ).execute()
+        )
+        execute_with_retry(request, f"Advertisement labeling batch {start // 1000 + 1}")
+
+
+def archive_messages(service, message_ids: list[str]) -> None:
+    for start in range(0, len(message_ids), 1000):
+        request = service.users().messages().batchModify(
+            userId="me",
+            body={
+                "ids": message_ids[start : start + 1000],
+                "removeLabelIds": ["INBOX"],
+            },
+        )
+        execute_with_retry(request, f"Advertisement archive batch {start // 1000 + 1}")
 
 
 def execute_with_retry(request, description: str) -> None:
@@ -243,6 +257,24 @@ def main() -> int:
             )
         else:
             print("No new Promotions need labeling.")
+
+        inbox_advertisements = list_query_message_ids(
+            service,
+            f'label:"{args.gmail_label}" in:inbox -in:trash',
+        )
+        if args.preview:
+            print(
+                f'Preview: {len(inbox_advertisements)} "{args.gmail_label}" '
+                "messages would be removed from Inbox."
+            )
+        elif inbox_advertisements:
+            archive_messages(service, inbox_advertisements)
+            print(
+                f'Removed {len(inbox_advertisements)} "{args.gmail_label}" '
+                "messages from Inbox."
+            )
+        else:
+            print(f'No "{args.gmail_label}" messages remain in Inbox.')
 
         print(f'Checking Apple reminder: "{args.reminder}"...', flush=True)
         reminder_id = latest_completed_reminder_id(args.reminder, args.reminder_list)
