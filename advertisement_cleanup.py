@@ -136,6 +136,38 @@ def list_message_ids(service, label_id: str) -> list[str]:
             return message_ids
 
 
+def list_query_message_ids(service, query: str) -> list[str]:
+    message_ids: list[str] = []
+    page_token = None
+    while True:
+        response = (
+            service.users()
+            .messages()
+            .list(
+                userId="me",
+                q=query,
+                maxResults=500,
+                pageToken=page_token,
+            )
+            .execute()
+        )
+        message_ids.extend(message["id"] for message in response.get("messages", []))
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            return message_ids
+
+
+def add_label_to_messages(service, message_ids: list[str], label_id: str) -> None:
+    for start in range(0, len(message_ids), 1000):
+        service.users().messages().batchModify(
+            userId="me",
+            body={
+                "ids": message_ids[start : start + 1000],
+                "addLabelIds": [label_id],
+            },
+        ).execute()
+
+
 def trash_messages(service, message_ids: list[str]) -> None:
     failures: list[str] = []
 
@@ -181,6 +213,27 @@ def main() -> int:
             print("Another cleanup run is already active. Skipping.")
             return 0
 
+        print("Connecting to Gmail and synchronizing Promotions...", flush=True)
+        service = gmail_service(args.credentials.expanduser(), args.token.expanduser())
+        label_id = find_label_id(service, args.gmail_label)
+        unlabeled_promotions = list_query_message_ids(
+            service,
+            f'category:promotions -label:"{args.gmail_label}" -in:trash',
+        )
+        if args.preview:
+            print(
+                f'Preview: {len(unlabeled_promotions)} Promotions would receive '
+                f'the "{args.gmail_label}" label.'
+            )
+        elif unlabeled_promotions:
+            add_label_to_messages(service, unlabeled_promotions, label_id)
+            print(
+                f'Added "{args.gmail_label}" to '
+                f'{len(unlabeled_promotions)} new Promotions.'
+            )
+        else:
+            print("No new Promotions need labeling.")
+
         print(f'Checking Apple reminder: "{args.reminder}"...', flush=True)
         reminder_id = latest_completed_reminder_id(args.reminder, args.reminder_list)
         if reminder_id is None:
@@ -193,9 +246,7 @@ def main() -> int:
             print("This reminder completion was already processed. Nothing changed.")
             return 0
 
-        print("New completed reminder found. Connecting to Gmail...", flush=True)
-        service = gmail_service(args.credentials.expanduser(), args.token.expanduser())
-        label_id = find_label_id(service, args.gmail_label)
+        print("New completed reminder found. Preparing Gmail cleanup...", flush=True)
         message_ids = list_message_ids(service, label_id)
         print(f'Found {len(message_ids)} non-trashed messages labeled "{args.gmail_label}".')
 
