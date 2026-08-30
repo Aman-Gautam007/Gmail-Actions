@@ -8,6 +8,7 @@ import fcntl
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
@@ -168,25 +169,34 @@ def add_label_to_messages(service, message_ids: list[str], label_id: str) -> Non
         ).execute()
 
 
+def execute_with_retry(request, description: str) -> None:
+    for attempt in range(6):
+        try:
+            request.execute()
+            return
+        except Exception as exc:
+            status = getattr(getattr(exc, "resp", None), "status", None)
+            retryable = status in {429, 500, 502, 503, 504}
+            if not retryable or attempt == 5:
+                raise
+            delay = min(60, 2 ** (attempt + 1))
+            print(f"{description} was rate-limited; retrying in {delay} seconds...", flush=True)
+            time.sleep(delay)
+
+
 def trash_messages(service, message_ids: list[str]) -> None:
-    failures: list[str] = []
-
-    def callback(message_id, _response, exception):
-        if exception:
-            failures.append(f"{message_id}: {exception}")
-
-    for start in range(0, len(message_ids), 100):
-        batch = service.new_batch_http_request(callback=callback)
-        for message_id in message_ids[start : start + 100]:
-            batch.add(
-                service.users().messages().trash(userId="me", id=message_id),
-                request_id=message_id,
-            )
-        batch.execute()
-        print(f"Moved {min(start + 100, len(message_ids))}/{len(message_ids)} to Trash")
-    if failures:
-        sample = "\n".join(failures[:10])
-        raise RuntimeError(f"{len(failures)} messages failed. First failures:\n{sample}")
+    for start in range(0, len(message_ids), 1000):
+        end = min(start + 1000, len(message_ids))
+        request = service.users().messages().batchModify(
+            userId="me",
+            body={
+                "ids": message_ids[start:end],
+                "addLabelIds": ["TRASH"],
+                "removeLabelIds": ["INBOX"],
+            },
+        )
+        execute_with_retry(request, f"Trash batch {start // 1000 + 1}")
+        print(f"Moved {end}/{len(message_ids)} to Trash", flush=True)
 
 
 def parse_args() -> argparse.Namespace:
