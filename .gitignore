@@ -14,7 +14,7 @@ cleanup-error.log
 *.log
 
 # Local Python environment and caches
-.venv/
+.venv*/
 venv/
 __pycache__/
 *.py[cod]
