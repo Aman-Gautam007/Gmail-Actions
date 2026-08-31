@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
-DEFAULT_CONFIG_DIR = Path.home() / "Desktop" / "Programming" / "Gmail-Actions"
+DEFAULT_CONFIG_DIR = Path.home() / "Library" / "Application Support" / "Gmail-Actions"
 DEFAULT_STATE_PATH = DEFAULT_CONFIG_DIR / ".processed_reminders.json"
 DEFAULT_LOCK_PATH = DEFAULT_CONFIG_DIR / ".cleanup.lock"
 

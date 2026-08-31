@@ -7,8 +7,8 @@
     <string>com.amangautam.gmail-advertisement-cleanup</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/amangautam/Desktop/Programming/Gmail-Actions/.venv/bin/python</string>
-        <string>/Users/amangautam/Desktop/Programming/Gmail-Actions/advertisement_cleanup.py</string>
+        <string>/Users/amangautam/Library/Application Support/Gmail-Actions/.venv/bin/python</string>
+        <string>/Users/amangautam/Library/Application Support/Gmail-Actions/advertisement_cleanup.py</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -20,8 +20,8 @@
         <string>1</string>
     </dict>
     <key>StandardOutPath</key>
-    <string>/Users/amangautam/Desktop/Programming/Gmail-Actions/cleanup.log</string>
+    <string>/Users/amangautam/Library/Application Support/Gmail-Actions/cleanup.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/amangautam/Desktop/Programming/Gmail-Actions/cleanup-error.log</string>
+    <string>/Users/amangautam/Library/Application Support/Gmail-Actions/cleanup-error.log</string>
 </dict>
 </plist>
