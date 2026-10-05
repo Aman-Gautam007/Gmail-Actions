@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Advertisement Cleaner</title>
+  <meta name="description" content="A personal Gmail housekeeping tool that organizes Promotions and cleans them after an Apple Reminder is completed.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23176b4a'/%3E%3Cpath d='M18 23h28M23 23l2 25h14l2-25M27 18h10' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header>
+    <nav class="shell" aria-label="Primary navigation">
+      <a class="brand" href="./"><span class="mark" aria-hidden="true">✦</span> Advertisement Cleaner</a>
+      <div class="links"><a href="#how-it-works">How it works</a><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a></div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div>
+        <div class="eyebrow">Personal inbox housekeeping</div>
+        <h1>Promotions organized. Cleanup on your signal.</h1>
+        <p class="lede">Advertisement Cleaner is a private, locally run utility that organizes Gmail Promotions under an Advertisement label and moves them to Trash only after its owner completes a matching Apple Reminder.</p>
+      </div>
+      <div class="workflow" aria-label="Cleanup workflow">
+        <div class="step"><span>1</span><div><h3>Organize</h3><p>Promotional messages receive the Advertisement label and are removed from Inbox.</p></div></div>
+        <div class="step"><span>2</span><div><h3>Review</h3><p>The owner can review the Advertisement label before cleanup.</p></div></div>
+        <div class="step"><span>3</span><div><h3>Clean</h3><p>Completing the designated reminder triggers the local cleanup.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="shell section-grid">
+        <div><div class="eyebrow">Purpose</div><h2>One focused job</h2></div>
+        <div class="section-copy">
+          <p>The utility uses the Gmail API with permission to modify mail. It identifies messages already categorized by Gmail as Promotions, applies a dedicated label, archives those messages from Inbox, and moves labeled messages to Trash when the owner completes a specific reminder.</p>
+          <p>It is designed for the developer’s personal account. It does not provide advertising, analytics, user registration, or data-sharing services.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell cards">
+        <article class="card"><h3>Local operation</h3><p>The automation and its authorization token run and remain on the owner’s Mac.</p></article>
+        <article class="card"><h3>Limited access</h3><p>Gmail access is used only to label, archive, list, and trash the messages needed for this workflow.</p></article>
+        <article class="card"><h3>No data sales</h3><p>Google user data is not sold, shared for advertising, or transferred to data brokers.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="shell footer-row"><span>© 2026 Advertisement Cleaner</span><div class="footer-links"><a href="./privacy/">Privacy Policy</a><a href="./terms/">Terms of Service</a><a href="mailto:amangautam2002@gmail.com">Contact</a></div></div></footer>
+</body>
+</html>

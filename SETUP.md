@@ -1,75 +1,51 @@
-# Advertisement cleanup for Apple Reminders + Gmail
+# Advertisement Cleaner setup
 
-This script checks whether an Apple Reminders item is completed. Only then can
-it move every non-trashed Gmail message carrying the `Advertisement` label to
-Trash. It never permanently deletes messages.
+## Local runtime
 
-## 1. Install the Python packages
-
-In Terminal, from this folder:
+Keep the installed script, requirements, virtual environment, credentials, token, logs, and state in `~/Library/Application Support/Gmail-Actions` to avoid iCloud Desktop offloading. Update the script from this repository without overwriting credentials or `.processed_reminders.json`.
 
 ```sh
+cd "$HOME/Library/Application Support/Gmail-Actions"
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 ```
 
-## 2. Create Google OAuth credentials
+## OAuth and safe preview
 
-1. Open Google Cloud Console and create or choose a project.
-2. Enable the Gmail API.
-3. Configure the OAuth consent screen for your Google account.
-4. Create an OAuth client of type **Desktop app**.
-5. Download the JSON file as:
-   `~/Library/Application Support/AdvertisementCleaner/credentials.json`
+Enable Gmail API in Google Cloud, create a Desktop app OAuth client, and save the downloaded configuration as `credentials.json` in the runtime directory. The script requests `https://www.googleapis.com/auth/gmail.modify`. Use the README's public URLs for Branding.
 
-On first use, Google opens a browser so you can authorize `gmail.modify`.
-The resulting token stays on this Mac in the same Application Support folder.
-
-## 3. Create the recurring reminder
-
-In Apple Reminders, create a weekly reminder named exactly:
-
-`Check Advertisement folder`
-
-Set it for Monday morning. A recurring reminder creates the next occurrence
-after you complete the current one.
-
-## 4. Test safely
-
-Complete the reminder, then run a preview:
+Audience publishing status and verification status are separate. Testing-mode Gmail authorizations expire after seven days. After moving to Production, obtain a new token to remove that particular expiry rule; other revocation conditions still apply.
 
 ```sh
-.venv/bin/python advertisement_cleanup.py
+"$HOME/Library/Application Support/Gmail-Actions/.venv/bin/python" \
+  "$HOME/Library/Application Support/Gmail-Actions/advertisement_cleanup.py" --preview
 ```
 
-The preview reports the number of matching messages and changes nothing.
+Complete browser authorization when prompted. Preview does not change Gmail or mark the reminder processed. If an existing token is revoked, stop the job, move `token.json` to a uniquely named local backup, and rerun preview to authorize again. Preserve reminder state.
 
-## 5. Create the Shortcut
+## Reminder and cleanup
 
-In the macOS Shortcuts app, create a shortcut named `Clean Advertisement Mail`:
+Create a recurring Monday morning Apple Reminder named exactly `Check Advertisement folder`. Grant Reminders automation access when macOS asks.
 
-1. Add **Show Alert**: `Move all Advertisement emails to Gmail Trash?`
-2. Add **Run Shell Script** (or **Run Script over SSH** only if you intentionally
-   run this on another Mac).
-3. Use this command, replacing `/FULL/PATH` with this folder's absolute path:
+The script first labels Promotions and archives Advertisement messages from Inbox. A newly completed reminder then triggers moving all non-trashed Advertisement messages to Trash. The LaunchAgent polls every 120 seconds while the Mac is awake and logged in; checking the reminder does not directly launch a Shortcut.
+
+Running without `--preview` performs actions without prompting. The old `--execute` and `--confirmation` flags are unsupported. The script does not permanently delete messages; Gmail Trash retention rules apply.
+
+## Background job
+
+Install the repository plist as a regular file at `~/Library/LaunchAgents/com.amangautam.gmail-advertisement-cleanup.plist`, not a symlink to Desktop. The template uses the developer's absolute runtime paths; adjust them on another Mac.
+
+Stop a loaded job before updates or reauthorization:
 
 ```sh
-cd /FULL/PATH
-.venv/bin/python advertisement_cleanup.py \
-  --execute \
-  --confirmation MOVE-ADVERTISEMENT-TO-TRASH
+launchctl bootout "gui/$(id -u)/com.amangautam.gmail-advertisement-cleanup"
 ```
 
-Run the shortcut after checking off the reminder. The script independently
-verifies that the reminder is completed before accessing Gmail.
+After installation or authorization, load it:
 
-## Permissions and behavior
+```sh
+launchctl bootstrap "gui/$(id -u)" \
+  "$HOME/Library/LaunchAgents/com.amangautam.gmail-advertisement-cleanup.plist"
+```
 
-- macOS may ask whether Terminal, Shortcuts, or `osascript` may access Reminders.
-  Approve this in **System Settings → Privacy & Security → Automation**.
-- Google may show an unverified-app warning for a private OAuth app in testing;
-  only authorize the OAuth client you created yourself.
-- Gmail Trash is recoverable until Gmail permanently removes those messages.
-- The script acts on the custom `Advertisement` label. It does not automatically
-  add that label to new promotional messages; create a Gmail filter or update the
-  script if you want new Promotions categorized automatically.
+Loading starts a run immediately and may clean mail if a completed reminder is pending. Diagnose failures using `cleanup.log` and `cleanup-error.log` in the runtime directory.

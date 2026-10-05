@@ -2,6 +2,7 @@
 credentials.json
 client_secret*.json
 token.json
+token*.json
 *.token.json
 
 # Local runtime state and locks
